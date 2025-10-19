@@ -26,7 +26,7 @@ const StellarUniversalisShop = () => {
     const characters = [
         {
             id: 1,
-            name: 'Violet Nocturne',
+            name: '바이올렛 녹턴',
             class: 'Dark Mage',
             element: 'Dark',
             rarity: 5,
@@ -41,7 +41,7 @@ const StellarUniversalisShop = () => {
         },
         {
             id: 2,
-            name: 'Aurelius Rex',
+            name: '아우렐리우스 렉스',
             class: 'Holy Knight',
             element: 'Light',
             rarity: 5,
@@ -56,7 +56,7 @@ const StellarUniversalisShop = () => {
         },
         {
             id: 3,
-            name: 'Astral Wanderer',
+            name: '스텔라 원더러',
             class: 'Quantum Explorer',
             element: 'Quantum',
             rarity: 4,

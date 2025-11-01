@@ -161,9 +161,14 @@ function MainPage() {
 
     useEffect(() => {
         setLoadingBooks(true);
-        fetch('/api/books')           // ← 페이지 파라미터 제거
+        fetch('/api/books?page=0&size=8&sort=id,desc')           // ← 페이지 파라미터 제거
             .then(r => r.json())
-            .then(data => setBooks(Array.isArray(data) ? data : []))
+            .then(data =>
+                {
+                    const items = Array.isArray(data?.content) ? data.content : [];
+                    setBooks(items);
+                }
+            )
             .catch(err => setErrorBooks(err.message || 'fail'))
             .finally(() => setLoadingBooks(false));
     }, []);

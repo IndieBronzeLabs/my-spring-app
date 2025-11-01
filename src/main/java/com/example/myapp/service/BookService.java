@@ -22,7 +22,7 @@ public class BookService {
         String dir = (parts.length > 1 ? parts[1].trim().toLowerCase() : "desc");
         if (!ALLOWED_SORT.contains(field)) field = "id";
         if (!"asc".equals(dir)) dir = "desc";
-        return field + " " + dir;
+        return "b." + field + " " + dir; // ← prefix
     }
 
     public Map<String,Object> page(String q, String category, String status, int page, int size, String sort) {

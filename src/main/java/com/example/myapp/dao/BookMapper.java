@@ -11,14 +11,14 @@ import java.util.List;
 public interface BookMapper {
 
     List<Book> selectPage(@Param("q") String q,
-                          @Param("category") String categoryCode,
+                          @Param("category") String category,
                           @Param("status") String status,
                           @Param("size") int size,
                           @Param("offset") int offset,
                           @Param("orderBy") String orderBy); // 화이트리스트로 검증해서 넣기
 
     long selectCount(@Param("q") String q,
-                     @Param("category") String categoryCode,
+                     @Param("category") String category,
                      @Param("status") String status);
 
     Book selectOne(@Param("id") Long id);

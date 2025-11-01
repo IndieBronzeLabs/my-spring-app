@@ -18,7 +18,7 @@ public class BookController {
     @GetMapping
     public Map<String,Object> list(@RequestParam(required=false) String q,
                                    @RequestParam(required=false) String category,
-                                   @RequestParam(required=false, defaultValue="ACTIVE") String status,
+                                   @RequestParam(required=false) String status,
                                    @RequestParam(defaultValue="0") int page,
                                    @RequestParam(defaultValue="8") int size,
                                    @RequestParam(defaultValue="id,desc") String sort){

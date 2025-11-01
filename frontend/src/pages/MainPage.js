@@ -79,7 +79,7 @@ function MainPage() {
         }
     ];
 
-    const books = [
+    const booksOldCoded = [
         {
             id: 1,
             title: "The Metamorphosis",
@@ -153,6 +153,21 @@ function MainPage() {
             badge: null
         }
     ];
+
+    // 서버에서 가져온 도서 리스트
+    const [books, setBooks] = useState([]);
+    const [loadingBooks, setLoadingBooks] = useState(true);
+    const [errorBooks, setErrorBooks] = useState('');
+
+    useEffect(() => {
+        setLoadingBooks(true);
+        fetch('/api/books')           // ← 페이지 파라미터 제거
+            .then(r => r.json())
+            .then(data => setBooks(Array.isArray(data) ? data : []))
+            .catch(err => setErrorBooks(err.message || 'fail'))
+            .finally(() => setLoadingBooks(false));
+    }, []);
+
 
     const badges = {
         "CLASSIC": "bg-gradient-to-r from-amber-700 to-amber-900",
@@ -324,10 +339,76 @@ function MainPage() {
                         엄선된 도서
                     </h3>
                     <p className="text-zinc-600 text-lg max-w-2xl mx-auto" style={{ fontFamily: "'Noto Sans KR', sans-serif", fontWeight: 300 }}>
-                        시대를 초월하는 문학과 사상의 정수
+                        좋은 책들로만 엄선하여 골랐습니다.
                     </p>
                 </div>
 
+                {loadingBooks && (
+                    <div className="text-center text-zinc-500">불러오는 중…</div>
+                )}
+
+                {!loadingBooks && errorBooks && (
+                    <div className="text-center text-red-600">로드 실패: {errorBooks}</div>
+                )}
+
+                {!loadingBooks && !errorBooks && books.length === 0 && (
+                    <div className="text-center text-zinc-500">표시할 도서가 없습니다.</div>
+                )}
+
+                {!loadingBooks && !errorBooks && books.length > 0 && (
+                    <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                        {books.map((book) => (
+                            <div
+                                key={book.id}
+                                className="group bg-white rounded-sm overflow-hidden shadow-md hover:shadow-2xl transition-all duration-500 cursor-pointer"
+                                onClick={() => navigate(`/book/${book.id}`)}
+                            >
+                                <div className="relative aspect-[2/3] overflow-hidden bg-zinc-100">
+                                    <img
+                                        src={book.imageUrl || book.image || 'https://placehold.co/600x900?text=Book'}
+                                        alt={book.title}
+                                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                                        onError={(e) => { e.currentTarget.src = 'https://placehold.co/600x900?text=Book'; }}
+                                    />
+                                    {book.badge && (
+                                        <div className={`absolute top-4 left-4 ${badges[book.badge] || 'bg-zinc-800'} text-white px-3 py-1 text-xs font-light tracking-wider`}>
+                                            {book.badge}
+                                        </div>
+                                    )}
+                                    <button
+                                        onClick={(e) => e.stopPropagation()}
+                                        className="absolute top-4 right-4 w-10 h-10 bg-white/95 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-white"
+                                    >
+                                        <Heart className="w-4 h-4 text-zinc-900" />
+                                    </button>
+                                </div>
+
+                                <div className="p-6">
+                                    <p className="text-zinc-500 text-xs tracking-widest mb-2 uppercase font-light">
+                                        {book.author}
+                                    </p>
+                                    <h4 className="font-serif text-zinc-900 text-lg mb-1 group-hover:text-zinc-700 transition-colors">
+                                        {book.title}
+                                    </h4>
+                                    {book.translator && (
+                                        <p className="text-zinc-500 text-sm font-light mb-4">{book.translator}</p>
+                                    )}
+
+                                    <div className="flex items-end justify-between">
+                                        <div className="text-2xl font-light text-zinc-900">
+                                            ₩{Number(book.price || 0).toLocaleString()}
+                                        </div>
+                                        <button className="text-xs tracking-wider text-zinc-900 hover:text-zinc-600 transition-colors uppercase font-light">
+                                            상세보기
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+                {/*
                 <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
                     {books.map((book) => (
                         <div
@@ -378,6 +459,7 @@ function MainPage() {
                         </div>
                     ))}
                 </div>
+                */}
             </section>
 
             {/* Premium Service */}

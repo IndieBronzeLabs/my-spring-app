@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: myapp-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: myapp
+      POSTGRES_PASSWORD: my_admin_1234
+      POSTGRES_DB: myapp_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - myapp_pg_data:/var/lib/postgresql/data
+
+volumes:
+  myapp_pg_data:

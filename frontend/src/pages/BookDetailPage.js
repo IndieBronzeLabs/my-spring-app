@@ -1,17 +1,37 @@
-import React, { useState, useEffect } from 'react';
+// src/pages/BookDetailPage.js
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
-import { ShoppingBag, Search, Heart, User, ChevronRight, Star, BookOpen, Award, Feather, Minus, Plus, Share2 } from 'lucide-react';
+import {
+    ShoppingBag, Search, Heart, User, Feather,
+    Star, Minus, Plus, Share2
+} from 'lucide-react';
 
 function BookDetailPage() {
     const { id } = useParams();
     const navigate = useNavigate();
+
+    // UI 상태
     const [scrollY, setScrollY] = useState(0);
     const [quantity, setQuantity] = useState(1);
-    const [selectedTab, setSelectedTab] = useState('description');
+    const [tab, setTab] = useState('description'); // description | toc | author | reviews
+
+    // 데이터 상태
+    const [book, setBook] = useState(null);                 // 기본 도서
+    const [detail, setDetail] = useState(null);             // book_details
+    const [toc, setToc] = useState([]);                     // book_toc_items[]
+    const [authorNotes, setAuthorNotes] = useState(null);   // book_author_notes
+    const [reviews, setReviews] = useState([]);             // book_reviews[]
+    const [rvPage, setRvPage] = useState(0);
+    const [rvHasMore, setRvHasMore] = useState(false);
+
+    // 로딩/에러
+    const [loading, setLoading] = useState(true);
+    const [err, setErr] = useState('');
 
     useEffect(() => {
         const link = document.createElement('link');
-        link.href = 'https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;500;600;700&family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap';
+        link.href =
+            'https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;500;600;700&family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap';
         link.rel = 'stylesheet';
         document.head.appendChild(link);
     }, []);
@@ -22,136 +42,152 @@ function BookDetailPage() {
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
-    // 샘플 데이터 (나중에 API로 대체)
-    const book = {
-        id: id,
-        title: "The Metamorphosis",
-        author: "Franz Kafka",
-        translator: "김영웅 역",
-        price: 14500,
-        originalPrice: 16000,
-        image: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=800&h=1200&fit=crop",
-        publisher: "민음사",
-        publishDate: "2023.03.15",
-        pages: 224,
-        isbn: "9788937460784",
-        category: "문학",
-        rating: 4.8,
-        reviewCount: 1247,
-        description: `카프카의 대표작 『변신』은 어느 날 아침 벌레로 변한 그레고르 잠자의 이야기를 통해 현대인의 소외와 실존적 불안을 탁월하게 그려낸 작품입니다. 
+    // 통합 응답 시도 → 실패 시 폴백으로 개별 호출
+    useEffect(() => {
+        let aborted = false;
+        const fetchAll = async () => {
+            setLoading(true);
+            setErr('');
+            try {
+                // 1) full 응답 우선
+                const fullRes = await fetch(`/api/books/${id}/full`);
+                if (fullRes.ok) {
+                    const full = await fullRes.json();
+                    if (aborted) return;
 
-    부조리한 상황 속에서 개인이 겪는 고독과 가족 관계의 붕괴, 사회적 소외를 날카롭게 포착한 이 소설은 출간 100년이 지난 지금까지도 현대 사회의 단면을 예리하게 비추는 거울로 작용합니다.
+                    setBook(full.book ?? null);
+                    setDetail(full.detail ?? null);
+                    setToc(Array.isArray(full.toc) ? full.toc : []);
+                    setAuthorNotes(full.authorNotes ?? null);
 
-    간결하면서도 강렬한 문체, 환상과 현실을 넘나드는 서사는 독자에게 깊은 사유의 시간을 선사합니다.`,
-        tableOfContents: [
-            "변신",
-            "판결",
-            "화부",
-            "작품 해설",
-            "작가 연보"
-        ],
-        authorInfo: `프란츠 카프카(1883-1924)는 20세기 가장 영향력 있는 작가 중 한 명입니다. 프라하에서 유대인 집안에 태어나 법학을 공부했으나, 평생 문학에 몰두했습니다. 생전에는 소수의 단편만을 발표했으나, 사후 친구 막스 브로트에 의해 미완성 장편들이 출간되면서 세계적인 명성을 얻었습니다.`
-    };
+                    const rv = full.reviews ?? { content: [], hasNext: false, page: 0 };
+                    setReviews(Array.isArray(rv.content) ? rv.content : []);
+                    setRvHasMore(Boolean(rv.hasNext));
+                    setRvPage(Number(rv.page ?? 0));
+                    setLoading(false);
+                    return;
+                }
 
-    const reviews = [
-        {
-            id: 1,
-            userName: "박지민",
-            rating: 5,
-            date: "2024.10.28",
-            content: "부조리한 현실 속에서 개인의 고독과 소외를 탁월하게 그려낸 작품입니다. 카프카 특유의 불안과 공포가 현대 사회의 단면을 예리하게 포착합니다.",
-            helpful: 24
-        },
-        {
-            id: 2,
-            userName: "이준호",
-            rating: 5,
-            date: "2024.10.25",
-            content: "읽을수록 깊어지는 여운. 단순한 우화가 아닌 실존에 대한 깊은 성찰을 담고 있습니다.",
-            helpful: 18
-        },
-        {
-            id: 3,
-            userName: "최유진",
-            rating: 4,
-            date: "2024.10.20",
-            content: "번역이 훌륭합니다. 원문의 뉘앙스를 잘 살린 것 같아요.",
-            helpful: 12
+                // 2) 폴백: 개별 엔드포인트 병렬
+                const [bRes, dRes, tRes, aRes, rRes] = await Promise.allSettled([
+                    fetch(`/api/books/${id}`),
+                    fetch(`/api/books/${id}/detail`),
+                    fetch(`/api/books/${id}/toc`),
+                    fetch(`/api/books/${id}/author-notes`),
+                    fetch(`/api/books/${id}/reviews?page=0&size=10&sort=created_at,desc`)
+                ]);
+
+                if (aborted) return;
+
+                // book
+                if (bRes.status === 'fulfilled' && bRes.value.ok) {
+                    setBook(await bRes.value.json());
+                } else {
+                    throw new Error('도서 정보를 불러오지 못했습니다.');
+                }
+
+                // detail
+                if (dRes.status === 'fulfilled' && dRes.value.ok) {
+                    setDetail(await dRes.value.json());
+                } else {
+                    setDetail(null);
+                }
+
+                // toc
+                if (tRes.status === 'fulfilled' && tRes.value.ok) {
+                    const arr = await tRes.value.json();
+                    setToc(Array.isArray(arr) ? arr : []);
+                } else {
+                    setToc([]);
+                }
+
+                // author notes
+                if (aRes.status === 'fulfilled' && aRes.value.ok) {
+                    setAuthorNotes(await aRes.value.json());
+                } else {
+                    setAuthorNotes(null);
+                }
+
+                // reviews
+                if (rRes.status === 'fulfilled' && rRes.value.ok) {
+                    const rv = await rRes.value.json();
+                    const items = Array.isArray(rv?.content) ? rv.content : [];
+                    setReviews(items);
+                    setRvHasMore(Boolean(rv?.hasNext));
+                    setRvPage(Number(rv?.page ?? 0));
+                } else {
+                    setReviews([]);
+                    setRvHasMore(false);
+                    setRvPage(0);
+                }
+
+            } catch (e) {
+                if (!aborted) setErr(e.message || '로드 실패');
+            } finally {
+                if (!aborted) setLoading(false);
+            }
+        };
+
+        fetchAll();
+        return () => { aborted = true; };
+    }, [id]);
+
+    // 리뷰 더보기
+    const loadMoreReviews = async () => {
+        if (!rvHasMore) return;
+        try {
+            const next = rvPage + 1;
+            const res = await fetch(`/api/books/${id}/reviews?page=${next}&size=10&sort=created_at,desc`);
+            if (!res.ok) return;
+            const data = await res.json();
+            const items = Array.isArray(data?.content) ? data.content : [];
+            setReviews(prev => [...prev, ...items]);
+            setRvHasMore(Boolean(data?.hasNext));
+            setRvPage(Number(data?.page ?? next));
+        } catch (e) {
+            console.error(e);
         }
-    ];
-
-    const relatedBooks = [
-        {
-            id: 2,
-            title: "The Stranger",
-            author: "Albert Camus",
-            price: 12000,
-            image: "https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=400&h=600&fit=crop"
-        },
-        {
-            id: 3,
-            title: "1984",
-            author: "George Orwell",
-            price: 13500,
-            image: "https://images.unsplash.com/photo-1524578271613-d550eacf6090?w=400&h=600&fit=crop"
-        },
-        {
-            id: 4,
-            title: "Norwegian Wood",
-            author: "Haruki Murakami",
-            price: 16800,
-            image: "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=400&h=600&fit=crop"
-        },
-        {
-            id: 5,
-            title: "Being and Time",
-            author: "Martin Heidegger",
-            price: 38000,
-            image: "https://images.unsplash.com/photo-1589998059171-988d887df646?w=400&h=600&fit=crop"
-        }
-    ];
-
-    const handleAddToCart = () => {
-        alert(`${book.title} ${quantity}권을 장바구니에 담았습니다.`);
-        // 나중에 실제 장바구니 로직 추가
     };
 
-    const handleBuyNow = () => {
-        navigate('/checkout');
-    };
+    const price = useMemo(() => Number(book?.price ?? 0), [book]);
+
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center text-zinc-500">
+                불러오는 중…
+            </div>
+        );
+    }
+    if (err || !book) {
+        return (
+            <div className="min-h-screen flex items-center justify-center text-red-600">
+                {err || '도서를 찾을 수 없습니다.'}
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-zinc-50" style={{ fontFamily: "'Noto Sans KR', sans-serif" }}>
             {/* Header */}
-            <header
-                className={`fixed w-full top-0 z-50 transition-all duration-500 bg-white/98 backdrop-blur-md shadow-sm border-b border-zinc-100`}
-            >
+            <header className="fixed w-full top-0 z-50 transition-all duration-500 bg-white/98 backdrop-blur-md shadow-sm border-b border-zinc-100">
                 <div className="max-w-7xl mx-auto px-6 lg:px-8">
                     <div className="flex items-center justify-between h-20">
                         <Link to="/" className="flex items-center">
                             <Feather className="w-7 h-7 mr-3 text-zinc-900" />
                             <div>
-                                <h1 className="text-2xl font-serif tracking-wider text-zinc-900">
-                                    BIBLIOTHECA
-                                </h1>
-                                <p className="text-xs tracking-widest font-light text-zinc-500">
-                                    FINE LITERATURE
-                                </p>
+                                <h1 className="text-2xl font-serif tracking-wider text-zinc-900">BIBLIOTHECA</h1>
+                                <p className="text-xs tracking-widest font-light text-zinc-500">FINE LITERATURE</p>
                             </div>
                         </Link>
 
                         <nav className="hidden lg:flex items-center space-x-10">
                             {[
-                                { name: '문학', path: '/category/literature' },
-                                { name: '철학', path: '/category/philosophy' },
-                                { name: '예술', path: '/category/art' },
-                                { name: '신간', path: '/category/new' },
+                                { name: '역사', path: '/category/history' },
+                                { name: '과학', path: '/category/science' },
+                                { name: '경제', path: '/category/economy' },
+                                { name: '인문', path: '/category/humanity' }
                             ].map((item) => (
-                                <Link
-                                    key={item.name}
-                                    to={item.path}
-                                    className="text-sm tracking-wide font-light transition-colors text-zinc-700 hover:text-zinc-900"
-                                >
+                                <Link key={item.name} to={item.path} className="text-sm tracking-wide font-light text-zinc-700 hover:text-zinc-900">
                                     {item.name}
                                 </Link>
                             ))}
@@ -178,84 +214,92 @@ function BookDetailPage() {
                 </div>
             </header>
 
-            {/* Book Detail */}
+            {/* Book Section */}
             <section className="max-w-7xl mx-auto px-6 lg:px-8 pt-32 pb-20">
                 <div className="grid md:grid-cols-2 gap-16">
-                    {/* Book Image */}
+                    {/* Image */}
                     <div className="sticky top-32 h-fit">
                         <div className="bg-white rounded-lg shadow-xl overflow-hidden">
                             <img
-                                src={book.image}
+                                src={book.imageUrl || book.image || 'https://placehold.co/800x1200?text=Book'}
                                 alt={book.title}
                                 className="w-full aspect-[2/3] object-cover"
+                                onError={(e) => { e.currentTarget.src = 'https://placehold.co/800x1200?text=Book'; }}
                             />
                         </div>
                     </div>
 
-                    {/* Book Info */}
+                    {/* Info */}
                     <div>
                         <div className="mb-6">
-                            <p className="text-zinc-500 text-sm tracking-widest uppercase mb-2">{book.category}</p>
+                            <p className="text-zinc-500 text-sm tracking-widest uppercase mb-2">
+                                {book?.category?.name || book?.category?.code || '카테고리'}
+                            </p>
                             <h1 className="text-4xl font-serif text-zinc-900 mb-4" style={{ fontFamily: "'Noto Serif KR', serif", fontWeight: 600 }}>
                                 {book.title}
                             </h1>
-                            <p className="text-xl text-zinc-600 mb-2" style={{ fontFamily: "'Noto Sans KR', sans-serif", fontWeight: 400 }}>
-                                {book.author}
-                            </p>
-                            <p className="text-sm text-zinc-500">{book.translator}</p>
+                            <p className="text-xl text-zinc-600 mb-2">{book.author}</p>
+                            {book.translator && <p className="text-sm text-zinc-500">{book.translator}</p>}
                         </div>
 
-                        {/* Rating */}
-                        <div className="flex items-center space-x-4 mb-8 pb-8 border-b border-zinc-200">
-                            <div className="flex items-center space-x-1">
-                                {[...Array(5)].map((_, i) => (
-                                    <Star
-                                        key={i}
-                                        className={`w-5 h-5 ${
-                                            i < Math.floor(book.rating)
-                                                ? 'fill-zinc-900 text-zinc-900'
-                                                : 'text-zinc-300'
-                                        }`}
-                                    />
-                                ))}
+                        {/* Rating (있으면 표시) */}
+                        {Number.isFinite(book.rating) && (
+                            <div className="flex items-center space-x-4 mb-8 pb-8 border-b border-zinc-200">
+                                <div className="flex items-center space-x-1">
+                                    {[...Array(5)].map((_, i) => (
+                                        <Star key={i} className={`w-5 h-5 ${i < Math.floor(book.rating) ? 'fill-zinc-900 text-zinc-900' : 'text-zinc-300'}`} />
+                                    ))}
+                                </div>
+                                <span className="text-lg font-medium text-zinc-900">{book.rating}</span>
+                                {Number.isFinite(book.reviewCount) && <span className="text-sm text-zinc-500">({book.reviewCount.toLocaleString()} 리뷰)</span>}
                             </div>
-                            <span className="text-lg font-medium text-zinc-900">{book.rating}</span>
-                            <span className="text-sm text-zinc-500">({book.reviewCount.toLocaleString()} 리뷰)</span>
-                        </div>
+                        )}
 
-                        {/* Book Details */}
+                        {/* Details */}
                         <div className="space-y-3 mb-8 pb-8 border-b border-zinc-200">
                             <div className="flex justify-between">
                                 <span className="text-zinc-500">출판사</span>
-                                <span className="text-zinc-900 font-light">{book.publisher}</span>
+                                <span className="text-zinc-900 font-light">{book.publisher || '-'}</span>
                             </div>
                             <div className="flex justify-between">
                                 <span className="text-zinc-500">출간일</span>
-                                <span className="text-zinc-900 font-light">{book.publishDate}</span>
+                                <span className="text-zinc-900 font-light">{detail?.publication_date || '-'}</span>
                             </div>
                             <div className="flex justify-between">
                                 <span className="text-zinc-500">페이지</span>
-                                <span className="text-zinc-900 font-light">{book.pages}쪽</span>
+                                <span className="text-zinc-900 font-light">{detail?.pages ? `${detail.pages}쪽` : '-'}</span>
                             </div>
                             <div className="flex justify-between">
                                 <span className="text-zinc-500">ISBN</span>
-                                <span className="text-zinc-900 font-light">{book.isbn}</span>
+                                <span className="text-zinc-900 font-light">{book.isbn || '-'}</span>
                             </div>
+                            {detail?.binding && (
+                                <div className="flex justify-between">
+                                    <span className="text-zinc-500">제본</span>
+                                    <span className="text-zinc-900 font-light">{detail.binding}</span>
+                                </div>
+                            )}
+                            {detail?.language && (
+                                <div className="flex justify-between">
+                                    <span className="text-zinc-500">언어</span>
+                                    <span className="text-zinc-900 font-light">{detail.language}</span>
+                                </div>
+                            )}
                         </div>
 
                         {/* Price */}
                         <div className="mb-8">
                             {book.originalPrice && (
                                 <div className="text-lg text-zinc-400 line-through mb-2">
-                                    ₩{book.originalPrice.toLocaleString()}
+                                    ₩{Number(book.originalPrice).toLocaleString()}
                                 </div>
                             )}
                             <div className="text-4xl font-light text-zinc-900 mb-2">
-                                ₩{book.price.toLocaleString()}
+                                ₩{price.toLocaleString()}
                             </div>
                             {book.originalPrice && (
                                 <div className="inline-block bg-red-100 text-red-700 px-3 py-1 rounded text-sm font-medium">
-                                    {Math.round((1 - book.price / book.originalPrice) * 100)}% 할인
+                                    {Math.round((1 - price / Number(book.originalPrice)) * 100)}% 할인
                                 </div>
                             )}
                         </div>
@@ -265,22 +309,16 @@ function BookDetailPage() {
                             <label className="block text-sm text-zinc-600 mb-3">수량</label>
                             <div className="flex items-center space-x-4">
                                 <div className="flex items-center border border-zinc-300 rounded-lg">
-                                    <button
-                                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                                        className="p-3 hover:bg-zinc-100 transition-colors"
-                                    >
+                                    <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="p-3 hover:bg-zinc-100 transition-colors">
                                         <Minus className="w-4 h-4" />
                                     </button>
                                     <span className="px-8 text-lg font-medium">{quantity}</span>
-                                    <button
-                                        onClick={() => setQuantity(quantity + 1)}
-                                        className="p-3 hover:bg-zinc-100 transition-colors"
-                                    >
+                                    <button onClick={() => setQuantity(quantity + 1)} className="p-3 hover:bg-zinc-100 transition-colors">
                                         <Plus className="w-4 h-4" />
                                     </button>
                                 </div>
                                 <div className="text-zinc-500">
-                                    총 <span className="text-xl font-medium text-zinc-900">₩{(book.price * quantity).toLocaleString()}</span>
+                                    총 <span className="text-xl font-medium text-zinc-900">₩{(price * quantity).toLocaleString()}</span>
                                 </div>
                             </div>
                         </div>
@@ -288,13 +326,13 @@ function BookDetailPage() {
                         {/* Actions */}
                         <div className="flex space-x-4 mb-6">
                             <button
-                                onClick={handleAddToCart}
+                                onClick={() => alert(`${book.title} ${quantity}권을 장바구니에 담았습니다.`)}
                                 className="flex-1 bg-zinc-900 text-white py-4 rounded-lg hover:bg-zinc-800 transition-colors font-light tracking-wider"
                             >
                                 장바구니 담기
                             </button>
                             <button
-                                onClick={handleBuyNow}
+                                onClick={() => navigate('/checkout')}
                                 className="flex-1 bg-white border-2 border-zinc-900 text-zinc-900 py-4 rounded-lg hover:bg-zinc-50 transition-colors font-light tracking-wider"
                             >
                                 바로 구매
@@ -315,70 +353,120 @@ function BookDetailPage() {
                 </div>
             </section>
 
-            {/* Tabs Section */}
+            {/* Tabs */}
             <section className="bg-white border-t border-zinc-200">
                 <div className="max-w-7xl mx-auto px-6 lg:px-8">
                     <div className="flex border-b border-zinc-200">
                         {[
                             { id: 'description', label: '상세 정보' },
-                            { id: 'toc', label: '목차' },
+                            { id: 'toc', label: `목차${toc.length ? ` (${toc.length})` : ''}` },
                             { id: 'author', label: '저자 소개' },
-                            { id: 'reviews', label: `리뷰 (${book.reviewCount})` }
-                        ].map((tab) => (
+                            { id: 'reviews', label: `리뷰${reviews.length ? ` (${reviews.length})` : ''}` }
+                        ].map(t => (
                             <button
-                                key={tab.id}
-                                onClick={() => setSelectedTab(tab.id)}
+                                key={t.id}
+                                onClick={() => setTab(t.id)}
                                 className={`px-8 py-4 font-light tracking-wide transition-colors ${
-                                    selectedTab === tab.id
-                                        ? 'border-b-2 border-zinc-900 text-zinc-900'
-                                        : 'text-zinc-500 hover:text-zinc-900'
+                                    tab === t.id ? 'border-b-2 border-zinc-900 text-zinc-900' : 'text-zinc-500 hover:text-zinc-900'
                                 }`}
                             >
-                                {tab.label}
+                                {t.label}
                             </button>
                         ))}
                     </div>
 
                     <div className="py-16">
-                        {selectedTab === 'description' && (
+                        {/* 상세 정보 */}
+                        {tab === 'description' && (
                             <div className="max-w-3xl">
                                 <h3 className="text-2xl font-serif text-zinc-900 mb-6" style={{ fontFamily: "'Noto Serif KR', serif", fontWeight: 500 }}>
                                     책 소개
                                 </h3>
-                                <div className="text-zinc-700 leading-relaxed whitespace-pre-line" style={{ fontFamily: "'Noto Sans KR', sans-serif", fontWeight: 400, lineHeight: '1.8' }}>
-                                    {book.description}
+                                <div className="text-zinc-700 leading-relaxed whitespace-pre-line" style={{ lineHeight: '1.8' }}>
+                                    {detail?.description || '소개 정보가 없습니다.'}
                                 </div>
+
+                                {/* ⭐ 수정: keywords 처리 */}
+                                {detail?.keywords && (
+                                    <div className="mt-6 flex flex-wrap gap-2">
+                                        {(() => {
+                                            try {
+                                                // JSON 문자열이면 파싱
+                                                const parsed = JSON.parse(detail.keywords);
+                                                if (Array.isArray(parsed)) {
+                                                    return parsed.map((k, i) => (
+                                                        <span key={i} className="text-xs bg-zinc-100 text-zinc-600 px-2 py-1 rounded">
+                                    #{k}
+                                </span>
+                                                    ));
+                                                }
+                                            } catch (e) {
+                                                // JSON이 아니면 그냥 문자열로 표시
+                                                return (
+                                                    <span className="text-xs bg-zinc-100 text-zinc-600 px-2 py-1 rounded">
+                                {detail.keywords}
+                            </span>
+                                                );
+                                            }
+                                        })()}
+                                    </div>
+                                )}
+
                             </div>
                         )}
 
-                        {selectedTab === 'toc' && (
+                        {/* 목차 */}
+                        {tab === 'toc' && (
                             <div className="max-w-3xl">
                                 <h3 className="text-2xl font-serif text-zinc-900 mb-6" style={{ fontFamily: "'Noto Serif KR', serif", fontWeight: 500 }}>
                                     목차
                                 </h3>
-                                <ul className="space-y-3">
-                                    {book.tableOfContents.map((item, index) => (
-                                        <li key={index} className="flex items-start">
-                                            <span className="text-zinc-400 mr-4">{String(index + 1).padStart(2, '0')}</span>
-                                            <span className="text-zinc-700">{item}</span>
-                                        </li>
-                                    ))}
-                                </ul>
+                                {toc.length === 0 ? (
+                                    <div className="text-zinc-500">목차 정보가 없습니다.</div>
+                                ) : (
+                                    <ul className="space-y-3">
+                                        {toc
+                                            .sort((a, b) => (a.seq ?? 0) - (b.seq ?? 0))
+                                            .map((item) => (
+                                                <li key={`${item.book_id}-${item.seq}`} className="flex items-start">
+                                                    <span className="text-zinc-400 mr-4">{String(item.seq).padStart(2, '0')}</span>
+                                                    <span className="text-zinc-700">{item.title}</span>
+                                                    {item.page_from && (
+                                                        <span className="text-zinc-400 ml-3 text-sm">
+                              p.{item.page_from}
+                                                            {item.page_to ? `–${item.page_to}` : ''}
+                            </span>
+                                                    )}
+                                                </li>
+                                            ))}
+                                    </ul>
+                                )}
                             </div>
                         )}
 
-                        {selectedTab === 'author' && (
+                        {/* 저자 소개 */}
+                        {tab === 'author' && (
                             <div className="max-w-3xl">
                                 <h3 className="text-2xl font-serif text-zinc-900 mb-6" style={{ fontFamily: "'Noto Serif KR', serif", fontWeight: 500 }}>
                                     저자 소개
                                 </h3>
-                                <div className="text-zinc-700 leading-relaxed" style={{ fontFamily: "'Noto Sans KR', sans-serif", fontWeight: 400, lineHeight: '1.8' }}>
-                                    {book.authorInfo}
+                                <div className="text-zinc-700 leading-relaxed whitespace-pre-line" style={{ lineHeight: '1.8' }}>
+                                    {authorNotes?.author_bio || '저자 소개가 없습니다.'}
                                 </div>
+
+                                {authorNotes?.translator_bio && (
+                                    <>
+                                        <h4 className="text-xl font-serif text-zinc-900 mt-10 mb-4">역자 소개</h4>
+                                        <div className="text-zinc-700 leading-relaxed whitespace-pre-line" style={{ lineHeight: '1.8' }}>
+                                            {authorNotes.translator_bio}
+                                        </div>
+                                    </>
+                                )}
                             </div>
                         )}
 
-                        {selectedTab === 'reviews' && (
+                        {/* 리뷰 */}
+                        {tab === 'reviews' && (
                             <div className="max-w-4xl">
                                 <div className="flex items-center justify-between mb-8">
                                     <h3 className="text-2xl font-serif text-zinc-900" style={{ fontFamily: "'Noto Serif KR', serif", fontWeight: 500 }}>
@@ -389,70 +477,57 @@ function BookDetailPage() {
                                     </button>
                                 </div>
 
-                                <div className="space-y-6">
-                                    {reviews.map((review) => (
-                                        <div key={review.id} className="border-b border-zinc-200 pb-6">
-                                            <div className="flex items-center justify-between mb-3">
-                                                <div className="flex items-center space-x-4">
-                                                    <span className="font-medium text-zinc-900">{review.userName}</span>
-                                                    <div className="flex items-center space-x-1">
-                                                        {[...Array(5)].map((_, i) => (
-                                                            <Star
-                                                                key={i}
-                                                                className={`w-4 h-4 ${
-                                                                    i < review.rating
-                                                                        ? 'fill-zinc-900 text-zinc-900'
-                                                                        : 'text-zinc-300'
-                                                                }`}
-                                                            />
-                                                        ))}
+                                {reviews.length === 0 ? (
+                                    <div className="text-zinc-500">아직 등록된 리뷰가 없습니다.</div>
+                                ) : (
+                                    <>
+                                        <div className="space-y-6">
+                                            {reviews.map((rv) => (
+                                                <div key={rv.id} className="border-b border-zinc-200 pb-6">
+                                                    <div className="flex items-center justify-between mb-3">
+                                                        <div className="flex items-center space-x-4">
+                                                            <span className="font-medium text-zinc-900">{rv.user_display || '익명'}</span>
+                                                            <div className="flex items-center space-x-1">
+                                                                {[...Array(5)].map((_, i) => (
+                                                                    <Star
+                                                                        key={i}
+                                                                        className={`w-4 h-4 ${i < (rv.rating ?? 0) ? 'fill-zinc-900 text-zinc-900' : 'text-zinc-300'}`}
+                                                                    />
+                                                                ))}
+                                                            </div>
+                                                            <span className="text-sm text-zinc-400">
+                                {rv.created_at ? new Date(rv.created_at).toLocaleDateString() : ''}
+                              </span>
+                                                        </div>
+                                                        {Number.isFinite(rv.helpful_count) && (
+                                                            <button className="text-sm text-zinc-500 hover:text-zinc-900">
+                                                                도움됨 {rv.helpful_count}
+                                                            </button>
+                                                        )}
                                                     </div>
-                                                    <span className="text-sm text-zinc-400">{review.date}</span>
+                                                    {rv.title && <div className="font-medium text-zinc-900 mb-1">{rv.title}</div>}
+                                                    <p className="text-zinc-700 leading-relaxed whitespace-pre-line">{rv.content}</p>
                                                 </div>
-                                                <button className="text-sm text-zinc-500 hover:text-zinc-900">
-                                                    도움됨 {review.helpful}
-                                                </button>
-                                            </div>
-                                            <p className="text-zinc-700 leading-relaxed" style={{ fontFamily: "'Noto Sans KR', sans-serif", fontWeight: 400, lineHeight: '1.8' }}>
-                                                {review.content}
-                                            </p>
+                                            ))}
                                         </div>
-                                    ))}
-                                </div>
+
+                                        <div className="mt-10 flex justify-center">
+                                            {rvHasMore ? (
+                                                <button
+                                                    onClick={loadMoreReviews}
+                                                    className="px-8 py-3 border border-zinc-900 text-zinc-900 hover:bg-zinc-900 hover:text-white transition-colors text-sm tracking-wider font-light"
+                                                >
+                                                    리뷰 더보기
+                                                </button>
+                                            ) : (
+                                                <div className="text-zinc-400 text-sm">모든 리뷰를 다 보셨습니다</div>
+                                            )}
+                                        </div>
+                                    </>
+                                )}
                             </div>
                         )}
                     </div>
-                </div>
-            </section>
-
-            {/* Related Books */}
-            <section className="max-w-7xl mx-auto px-6 lg:px-8 py-20">
-                <h3 className="text-3xl font-serif text-zinc-900 mb-8" style={{ fontFamily: "'Noto Serif KR', serif", fontWeight: 500 }}>
-                    함께 보면 좋은 책
-                </h3>
-                <div className="grid md:grid-cols-4 gap-8">
-                    {relatedBooks.map((relatedBook) => (
-                        <div
-                            key={relatedBook.id}
-                            onClick={() => navigate(`/book/${relatedBook.id}`)}
-                            className="group cursor-pointer"
-                        >
-                            <div className="relative aspect-[2/3] overflow-hidden bg-zinc-100 rounded-lg mb-4">
-                                <img
-                                    src={relatedBook.image}
-                                    alt={relatedBook.title}
-                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                                />
-                            </div>
-                            <h4 className="font-serif text-zinc-900 mb-1 group-hover:text-zinc-600 transition-colors">
-                                {relatedBook.title}
-                            </h4>
-                            <p className="text-sm text-zinc-500 mb-2">{relatedBook.author}</p>
-                            <p className="text-lg font-light text-zinc-900">
-                                ₩{relatedBook.price.toLocaleString()}
-                            </p>
-                        </div>
-                    ))}
                 </div>
             </section>
 
@@ -468,44 +543,14 @@ function BookDetailPage() {
                                     <p className="text-xs text-zinc-500 tracking-widest font-light">FINE LITERATURE</p>
                                 </div>
                             </div>
-                            <p className="text-zinc-400 text-sm leading-relaxed" style={{ fontFamily: "'Noto Sans KR', sans-serif", fontWeight: 300 }}>
-                                1987년부터 이어온<br />
-                                문학의 전통
+                            <p className="text-zinc-400 text-sm leading-relaxed">
+                                1987년부터 이어온<br />문학의 전통
                             </p>
                         </div>
-
-                        {[
-                            { title: '컬렉션', links: ['문학', '철학', '시 & 에세이', '예술'] },
-                            { title: '서비스', links: ['큐레이션', '독서 클럽', '저자 만남', '맞춤 추천'] },
-                            { title: '고객지원', links: ['공지사항', '배송 안내', '반품 정책', '문의하기'] }
-                        ].map((section, idx) => (
-                            <div key={idx}>
-                                <h5 className="font-serif mb-4 tracking-wide">{section.title}</h5>
-                                <ul className="space-y-3">
-                                    {section.links.map((link, i) => (
-                                        <li key={i}>
-                                            <a href="#" className="text-zinc-400 hover:text-white transition-colors text-sm font-light">
-                                                {link}
-                                            </a>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                        ))}
                     </div>
 
                     <div className="flex flex-col md:flex-row justify-between items-center text-sm">
-                        <p className="text-zinc-500 font-light">
-                            © 2024 BIBLIOTHECA. All rights reserved.
-                        </p>
-                        <div className="flex space-x-8 mt-4 md:mt-0">
-                            <a href="#" className="text-zinc-500 hover:text-white transition-colors font-light">
-                                이용약관
-                            </a>
-                            <a href="#" className="text-zinc-500 hover:text-white transition-colors font-light">
-                                개인정보처리방침
-                            </a>
-                        </div>
+                        <p className="text-zinc-500 font-light">© 2024 BIBLIOTHECA. All rights reserved.</p>
                     </div>
                 </div>
             </footer>

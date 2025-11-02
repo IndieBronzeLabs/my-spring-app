@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.myapp.dao.CategoryMapper">
+
+    <resultMap id="CategoryMap" type="com.example.myapp.domain.Category">
+        <id property="id" column="id"/>
+        <result property="code" column="code"/>
+        <result property="name" column="name"/>
+        <result property="parentId" column="parent_id"/>
+        <result property="bookCount" column="book_count"/>
+    </resultMap>
+
+    <!-- 단순 목록 -->
+    <select id="selectAll" resultMap="CategoryMap">
+        SELECT id, code, name, parent_id,
+               NULL::bigint AS book_count
+        FROM categories
+        ORDER BY id
+    </select>
+
+    <!-- 책 개수 포함 목록 (status 필터) -->
+    <select id="selectWithCounts" resultMap="CategoryMap">
+        SELECT c.id, c.code, c.name, c.parent_id,
+        COALESCE(b.cnt, 0) AS book_count
+        FROM categories c
+        LEFT JOIN (
+        SELECT category_id, COUNT(*) AS cnt
+        FROM books
+        <where>
+            <if test="status != null and status != ''">
+                status = #{status}
+            </if>
+        </where>
+        GROUP BY category_id
+        ) b ON b.category_id = c.id
+        ORDER BY c.id
+    </select>
+</mapper>

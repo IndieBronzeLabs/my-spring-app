@@ -1,7 +1,7 @@
-// com.example.myapp.dao.BookMapper.java
+// BookMapper.java
 package com.example.myapp.dao;
 
-import com.example.myapp.domain.Book;
+import com.example.myapp.domain.*;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -10,16 +10,32 @@ import java.util.List;
 @Mapper
 public interface BookMapper {
 
-    List<Book> selectPage(@Param("q") String q,
-                          @Param("category") String category,
-                          @Param("status") String status,
-                          @Param("size") int size,
-                          @Param("offset") int offset,
-                          @Param("orderBy") String orderBy); // 화이트리스트로 검증해서 넣기
+    List<Book> searchBooks(@Param("q") String q,
+                           @Param("categoryCode") String categoryCode,
+                           @Param("status") String status,
+                           @Param("limit") int limit,
+                           @Param("offset") int offset,
+                           @Param("sort") String sort);
 
-    long selectCount(@Param("q") String q,
-                     @Param("category") String category,
-                     @Param("status") String status);
+    long countBooks(@Param("q") String q,
+                    @Param("categoryCode") String categoryCode,
+                    @Param("status") String status);
 
-    Book selectOne(@Param("id") Long id);
+    Book findBookById(@Param("id") Long id);
+
+    BookDetail findDetailByBookId(@Param("bookId") Long bookId);
+
+    List<BookTocItem> findTocByBookId(@Param("bookId") Long bookId);
+
+    BookAuthorNotes findAuthorNotesByBookId(@Param("bookId") Long bookId);
+
+    // 리뷰 페이지네이션
+    List<BookReview> findReviews(
+            @Param("bookId") Long bookId,
+            @Param("limit") int limit,
+            @Param("offset") int offset,
+            @Param("orderBy") String orderBy   // "created_at" 등
+    );
+
+    long countReviews(@Param("bookId") Long bookId);
 }

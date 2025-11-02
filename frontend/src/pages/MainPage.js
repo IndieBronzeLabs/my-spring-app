@@ -22,156 +22,110 @@ function MainPage() {
 
     useEffect(() => {
         const timer = setInterval(() => {
-            setCurrentSlide((prev) => (prev + 1) % 3);
+            setCurrentSlide((prev) => (prev + 1) % 4);
         }, 6000);
         return () => clearInterval(timer);
     }, []);
 
     const heroSlides = [
         {
-            title: "Literature & Art",
-            subtitle: "문학의 품격",
-            description: "시대를 초월한 문학 작품",
+            title: "History & Civilization",
+            subtitle: "역사의 흐름",
+            description: "인류의 시간과 그 흔적을 따라가는 여정",
             image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=1600&h=900&fit=crop"
         },
         {
-            title: "Philosophy & Thought",
-            subtitle: "사유의 깊이",
-            description: "철학자들의 위대한 통찰",
+            title: "Science & Discovery",
+            subtitle: "지식의 확장",
+            description: "세상을 이해하고 탐구하는 시선",
             image: "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=1600&h=900&fit=crop"
         },
         {
-            title: "Timeless Classics",
-            subtitle: "영원한 고전",
-            description: "세대를 넘어 읽히는 명작",
+            title: "Economy & Society",
+            subtitle: "세상의 움직임",
+            description: "사람과 시장이 만들어내는 변화의 흐름",
             image: "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=1600&h=900&fit=crop"
+        },
+        {
+            title: "Humanities & Philosophy",
+            subtitle: "사유의 깊이",
+            description: "삶과 인간을 이해하려는 사유의 길",
+            image: "https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=1600&h=900&fit=crop"
         }
     ];
 
-    const collections = [
-        {
-            name: "Literary Fiction",
-            subtitle: "현대 문학의 정수",
-            count: "287 titles",
-            image: "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=600&h=800&fit=crop",
-            category: "literature"
-        },
-        {
-            name: "Philosophy",
-            subtitle: "사유의 본질",
-            count: "156 titles",
-            image: "https://images.unsplash.com/photo-1457369804613-52c61a468e7d?w=600&h=800&fit=crop",
-            category: "philosophy"
-        },
-        {
-            name: "Poetry & Essays",
-            subtitle: "언어의 예술",
-            count: "203 titles",
-            image: "https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=600&h=800&fit=crop",
-            category: "poetry"
-        },
-        {
-            name: "Art & Design",
-            subtitle: "시각적 영감",
-            count: "194 titles",
-            image: "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=600&h=800&fit=crop",
-            category: "art"
-        }
-    ];
 
-    const booksOldCoded = [
-        {
-            id: 1,
-            title: "The Metamorphosis",
-            author: "Franz Kafka",
-            translator: "김영웅 역",
-            price: 14500,
-            image: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=600&h=900&fit=crop",
-            badge: "CLASSIC"
-        },
-        {
-            id: 2,
-            title: "Norwegian Wood",
-            author: "Haruki Murakami",
-            translator: "양억관 역",
-            price: 16800,
-            image: "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=600&h=900&fit=crop",
-            badge: "BESTSELLER"
-        },
-        {
-            id: 3,
-            title: "Being and Time",
-            author: "Martin Heidegger",
-            translator: "이기상 역",
-            price: 38000,
-            image: "https://images.unsplash.com/photo-1589998059171-988d887df646?w=600&h=900&fit=crop",
-            badge: "PHILOSOPHY"
-        },
-        {
-            id: 4,
-            title: "The Stranger",
-            author: "Albert Camus",
-            translator: "김화영 역",
-            price: 12000,
-            image: "https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=600&h=900&fit=crop",
-            badge: "ESSENTIAL"
-        },
-        {
-            id: 5,
-            title: "Collected Poems",
-            author: "Rainer Maria Rilke",
-            translator: "김재혁 역",
-            price: 24000,
-            image: "https://images.unsplash.com/photo-1519682337058-a94d519337bc?w=600&h=900&fit=crop",
-            badge: null
-        },
-        {
-            id: 6,
-            title: "1984",
-            author: "George Orwell",
-            translator: "정회성 역",
-            price: 13500,
-            image: "https://images.unsplash.com/photo-1524578271613-d550eacf6090?w=600&h=900&fit=crop",
-            badge: "ESSENTIAL"
-        },
-        {
-            id: 7,
-            title: "Sapiens",
-            author: "Yuval Noah Harari",
-            translator: "조현욱 역",
-            price: 22500,
-            image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=600&h=900&fit=crop",
-            badge: "BESTSELLER"
-        },
-        {
-            id: 8,
-            title: "The Art of Loving",
-            author: "Erich Fromm",
-            translator: "황문수 역",
-            price: 15000,
-            image: "https://images.unsplash.com/photo-1506880018603-83d5b814b5a6?w=600&h=900&fit=crop",
-            badge: null
-        }
-    ];
+
+
+    const [categories, setCategories] = useState([]);
+    const [loadingCats, setLoadingCats] = useState(true);
+    const [errorCats, setErrorCats] = useState('');
+
+    // 카테고리 이미지 프리셋(코드별 매핑)
+    const categoryImages = {
+        history: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=600&h=800&fit=crop',
+        science: 'https://images.unsplash.com/photo-1457369804613-52c61a468e7d?w=600&h=800&fit=crop',
+        economy: 'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=600&h=800&fit=crop',
+        humanity:'https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=600&h=800&fit=crop'
+    };
+
+    useEffect(() => {
+        setLoadingCats(true);
+        fetch('/api/categories?withCounts=1&status=ACTIVE')
+            .then(r => r.json())
+            .then(data => setCategories(Array.isArray(data) ? data : []))
+            .catch(err => setErrorCats(err.message || 'fail'))
+            .finally(() => setLoadingCats(false));
+    }, []);
 
     // 서버에서 가져온 도서 리스트
     const [books, setBooks] = useState([]);
     const [loadingBooks, setLoadingBooks] = useState(true);
     const [errorBooks, setErrorBooks] = useState('');
+    const [page, setPage] = useState(0);
+    const size = 8;
+    const [total, setTotal] = useState(0);     // 총 개수
+    const [hasMore, setHasMore] = useState(false); // 더보기 가능 여부
+    const [loadingMore, setLoadingMore] = useState(false);
 
     useEffect(() => {
         setLoadingBooks(true);
-        fetch('/api/books?page=0&size=8&sort=id,desc')           // ← 페이지 파라미터 제거
+        fetch(`/api/books?page=0&size=${size}&sort=id,desc`)
             .then(r => r.json())
             .then(data =>
                 {
                     const items = Array.isArray(data?.content) ? data.content : [];
                     setBooks(items);
+
+                    setTotal(Number(data?.totalElements ?? 0));
+                    setPage(Number(data?.page ?? 0));
+                    setHasMore(items.length < Number(data?.totalElements ?? 0));
                 }
             )
             .catch(err => setErrorBooks(err.message || 'fail'))
             .finally(() => setLoadingBooks(false));
     }, []);
+
+    const loadMore = async () => {
+        if (loadingMore || !hasMore) return;
+          setLoadingMore(true);
+          try {
+                  const nextPage = page + 1; // 다음 페이지
+                  const res = await fetch(`/api/books?page=${nextPage}&size=${size}&sort=id,desc`);
+              const data = await res.json();
+              const items = Array.isArray(data?.content) ? data.content : [];
+                 setBooks(prev => {
+                       const merged = [...prev, ...items];     // ✅ 먼저 합치고
+                       setHasMore(merged.length < total);      // ✅ 길이로 판정
+                       return merged;
+                     });
+                 setPage(nextPage);
+              } catch (e) {
+                console.error('load more error', e);
+              } finally {
+                setLoadingMore(false);
+              }
+        };
 
 
     const badges = {
@@ -209,26 +163,21 @@ function MainPage() {
                             </div>
                         </Link>
 
+                        {/* 기존 nav 삭제하고 아래로 대체 */}
                         <nav className="hidden lg:flex items-center space-x-10">
-                            {[
-                                { name: '문학', path: '/category/literature' },
-                                { name: '철학', path: '/category/philosophy' },
-                                { name: '예술', path: '/category/art' },
-                                { name: '신간', path: '/category/new' },
-                            ].map((item) => (
+                            {categories.map((cat) => (
                                 <Link
-                                    key={item.name}
-                                    to={item.path}
+                                    key={cat.id}
+                                    to={`/category/${cat.code}`}
                                     className={`text-sm tracking-wide font-light transition-colors ${
-                                        scrollY > 50
-                                            ? 'text-zinc-700 hover:text-zinc-900'
-                                            : 'text-white hover:text-white/80'
+                                        scrollY > 50 ? 'text-zinc-700 hover:text-zinc-900' : 'text-white hover:text-white/80'
                                     }`}
                                 >
-                                    {item.name}
+                                    {cat.name}
                                 </Link>
                             ))}
                         </nav>
+
 
                         <div className="flex items-center space-x-5">
                             <button className={`transition-colors ${
@@ -309,31 +258,40 @@ function MainPage() {
                 </div>
             </section>
 
-            {/* Collections */}
+            {/* Collections → DB 카테고리로 치환 */}
             <section className="max-w-7xl mx-auto px-6 lg:px-8 -mt-24 relative z-10">
-                <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {collections.map((collection, index) => (
-                        <Link
-                            key={index}
-                            to={`/category/${collection.category}`}
-                            className="group relative h-96 bg-white rounded-sm overflow-hidden cursor-pointer shadow-lg hover:shadow-2xl transition-all duration-500"
-                        >
-                            <img
-                                src={collection.image}
-                                alt={collection.name}
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-                            <div className="absolute inset-0 flex flex-col justify-end p-6">
-                                <p className="text-zinc-300 text-xs tracking-widest mb-2 uppercase font-light">
-                                    {collection.count}
-                                </p>
-                                <h3 className="text-white text-2xl font-serif mb-1">{collection.name}</h3>
-                                <p className="text-zinc-400 text-sm" style={{ fontFamily: "'Noto Serif KR', serif", fontWeight: 300 }}>{collection.subtitle}</p>
-                            </div>
-                        </Link>
-                    ))}
-                </div>
+                {loadingCats && (
+                    <div className="text-center text-zinc-500 py-10">카테고리 불러오는 중…</div>
+                )}
+                {!loadingCats && errorCats && (
+                    <div className="text-center text-red-600 py-10">카테고리 로드 실패: {errorCats}</div>
+                )}
+                {!loadingCats && !errorCats && (
+                    <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        {categories.map((cat) => (
+                            <Link
+                                key={cat.id}
+                                to={`/category/${cat.code}`}
+                                className="group relative h-96 bg-white rounded-sm overflow-hidden cursor-pointer shadow-lg hover:shadow-2xl transition-all duration-500"
+                            >
+                                <img
+                                    src={categoryImages[cat.code] || 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=600&h=800&fit=crop'}
+                                    alt={cat.name}
+                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                                    onError={(e) => { e.currentTarget.src = 'https://placehold.co/600x800?text=Category'; }}
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                                <div className="absolute inset-0 flex flex-col justify-end p-6">
+                                    <p className="text-zinc-300 text-xs tracking-widest mb-2 uppercase font-light">
+                                        {(cat.bookCount ?? 0) > 0 ? `${cat.bookCount}권` : '준비 중'}
+                                    </p>
+                                    <h3 className="text-white text-2xl font-serif mb-1">{cat.name}</h3>
+                                    <p className="text-zinc-400 text-sm">#{cat.code}</p>
+                                </div>
+                            </Link>
+                        ))}
+                    </div>
+                )}
             </section>
 
             {/* Featured Books */}
@@ -411,6 +369,24 @@ function MainPage() {
                             </div>
                         ))}
                     </div>
+                )}
+
+                {/* 더보기 버튼 / 로딩 인디케이터 */}
+                {!loadingBooks && !errorBooks && books.length > 0 && (
+                  <div className="mt-12 flex justify-center">
+                        {hasMore  ? (
+                            <button
+                                onClick={loadMore}
+                                disabled={loadingMore || !hasMore}
+                                className="px-8 py-3 border border-zinc-900 text-zinc-900 hover:bg-zinc-900 hover:text-white transition-colors text-sm tracking-wider font-light disabled:opacity-60"
+                            >
+                                {loadingMore ? '불러오는 중…' : '더보기'}
+                            </button>
+
+                        ) : (
+                          <div className="text-zinc-400 text-sm">모든 도서를 다 보셨어요</div>
+                        )}
+                      </div>
                 )}
 
                 {/*

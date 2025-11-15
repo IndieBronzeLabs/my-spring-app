@@ -21,7 +21,7 @@ class ChatRequest(BaseModel):
 class ChatResponse(BaseModel):
     reply: str
 
-@app.post("/chat/simple", response_model=ChatResponse)
+@app.post("/ai/chat/simple", response_model=ChatResponse)
 async def simple_chat(req: ChatRequest):
     completion = client.chat.completions.create(
         model="gpt-4.1-mini",

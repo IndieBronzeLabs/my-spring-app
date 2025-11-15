@@ -40,4 +40,8 @@ out/
 # Ignore all environment files
 .env
 *.env
-book-ai-bot/.env
+book-ai-bot/.
+
+application-dev.properties
+application-prod.properties
+application-local.propertiess

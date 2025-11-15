@@ -37,5 +37,7 @@ out/
 .vscode/
 
 ### 환경 변수 파일 ###
+# Ignore all environment files
+.env
 *.env
 book-ai-bot/.env

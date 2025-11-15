@@ -502,12 +502,6 @@ function MainPage() {
                 </div>
             </section>
 
-
-            <div>
-                {/* 기존 컨텐츠들 */}
-                <Chatbot />
-            </div>
-
             {/* Footer */}
             <footer className="bg-zinc-900 text-white pt-20 pb-10">
                 <div className="max-w-7xl mx-auto px-6 lg:px-8">
@@ -561,6 +555,10 @@ function MainPage() {
                     </div>
                 </div>
             </footer>
+
+
+            <Chatbot />
+
         </div>
     );
 }

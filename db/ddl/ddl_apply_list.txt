@@ -1,0 +1,5 @@
+# ddl_apply_list.txt
+# --- 이 파일에 적힌 SQL 파일만 순서대로 적용됨 ---
+# --- 주석은 # 으로 시작 ---
+
+VS20251115_01_create_db_tables.sql

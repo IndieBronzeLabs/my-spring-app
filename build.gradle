@@ -47,3 +47,9 @@ dependencies {
 tasks.named('test') {
     useJUnitPlatform()
 }
+
+bootJar {
+    // JAR 파일 이름: myapp-0.0.1-SNAPSHOT.jar
+    archiveBaseName.set("myapp")
+    archiveVersion.set("0.0.1-SNAPSHOT")
+}

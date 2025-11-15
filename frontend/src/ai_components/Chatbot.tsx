@@ -26,7 +26,7 @@ const Chatbot: React.FC = () => {
         setLoading(true);
 
         const isLocal = window.location.hostname === "localhost";
-        const API_BASE = isLocal ? "http://localhost:8010" : ""; // AWS에서는 nginx 통해 같은 도메인으로 감
+        const API_BASE = isLocal ? "http://localhost:8010" : ""; // 로컬에서는 localhost의 8010포트 : AWS에서는 nginx 통해 같은 도메인으로 감
 
         try {
             // 2) 백엔드(FastAPI)로 요청

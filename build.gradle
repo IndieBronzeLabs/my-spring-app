@@ -18,14 +18,7 @@ repositories {
     mavenCentral()
 }
 
-// 리소스 포함 설정 추가
-sourceSets {
-    main {
-        resources {
-            srcDir 'src/main/resources'
-        }
-    }
-}
+// sourceSets delete!!
 
 // 또는 processResources 태스크 명시적 설정
 tasks.named('processResources') {

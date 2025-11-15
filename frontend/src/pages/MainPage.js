@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ShoppingBag, Search, Heart, User, ChevronRight, Star, BookOpen, Award, Feather } from 'lucide-react';
 
+import Chatbot from "../ai_components/Chatbot";
+
 function MainPage() {
     const navigate = useNavigate();
     const [currentSlide, setCurrentSlide] = useState(0);
@@ -499,6 +501,12 @@ function MainPage() {
                     </div>
                 </div>
             </section>
+
+
+            <div>
+                {/* 기존 컨텐츠들 */}
+                <Chatbot />
+            </div>
 
             {/* Footer */}
             <footer className="bg-zinc-900 text-white pt-20 pb-10">

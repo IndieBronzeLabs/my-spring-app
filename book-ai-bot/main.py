@@ -4,6 +4,7 @@ from typing import Optional
 from dotenv import load_dotenv
 from openai import OpenAI
 import os
+from fastapi.middleware.cors import CORSMiddleware
 
 load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -13,6 +14,20 @@ app = FastAPI(
     docs_url="/ai/docs",          # ★ Swagger 문서 경로
     openapi_url="/ai/openapi.json"  # ★ OpenAPI JSON 경로
 )
+
+
+# CORS 추가
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:8080",   # 스프링이 띄운 페이지
+        "http://localhost:3000",   # 혹시 CRA dev 서버 쓸 때
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 class ChatRequest(BaseModel):
     message: str

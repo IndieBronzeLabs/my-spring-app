@@ -45,3 +45,5 @@ book-ai-bot/.
 application-dev.properties
 application-prod.properties
 application-local.propertiess
+
+src/main/resources/static/

@@ -8,7 +8,11 @@ import os
 load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-app = FastAPI(title="Book AI Test API")
+app = FastAPI(
+    title="Book AI Test API",
+    docs_url="/ai/docs",          # ★ Swagger 문서 경로
+    openapi_url="/ai/openapi.json"  # ★ OpenAPI JSON 경로
+)
 
 class ChatRequest(BaseModel):
     message: str
@@ -30,6 +34,5 @@ async def simple_chat(req: ChatRequest):
         ],
         temperature=0.7,
     )
-
     reply = completion.choices[0].message.content
     return ChatResponse(reply=reply)
